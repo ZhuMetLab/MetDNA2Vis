@@ -165,7 +165,7 @@ reconstructNetwork1 <- function(dir_path = '.',
   edge_table <- edge_table %>% dplyr::mutate(diff_formula = diff_formula)
 
   # export
-  path_export <- file.path(dir_path, '00_network1')
+  path_export <- file.path(dir_path, '00_files_network1')
   dir.create(path_export, showWarnings = FALSE, recursive = TRUE)
   readr::write_tsv(node_table, file = file.path(path_export, 'node_table.tsv'))
   readr::write_tsv(edge_table, file = file.path(path_export, 'edge_table.tsv'))
@@ -756,6 +756,7 @@ reconstructNetwork3 <- function(dir_path = '.') {
 #' @param step neigbor step. Default: 1
 #' @param is_unknown_annotation whether used unknown annotation. Default: TRUE
 #' @param dir_path path of working directory. Default: '.'
+#' @param folder_output path of subnetwork export. It will generate a subfolder in 03_subnetwork folder. If no folder defined, the subnetworks will exported into a folder with name of centric_met. Default: NULL
 #' @param show_plot whether show subnetwork plot in R. Default: TRUE
 #' @export
 #' @examples
@@ -774,6 +775,7 @@ retrieveSubNetwork1 <- function(centric_met,
     step = 1,
     is_unknown_annotation = TRUE,
     dir_path = '.',
+    folder_output = NULL,
     show_plot = TRUE) {
 
     if (missing(centric_met)) {
@@ -830,10 +832,18 @@ retrieveSubNetwork1 <- function(centric_met,
     diff_formula[is.na(diff_formula)] <- 'isomer'
     edge_table <- edge_table %>% dplyr::mutate(diff_formula = diff_formula)
 
-    path_export <- file.path(dir_path,
-      '03_subnetworks',
-      paste(centric_met, collapse = '_'),
-      'network1')
+    if (length(folder_output) == 0) {
+      path_export <- file.path(dir_path,
+        '03_subnetworks',
+        paste(centric_met, collapse = '_'),
+        'network1')
+    } else {
+      path_export <- file.path(dir_path,
+        '03_subnetworks',
+        folder_output,
+        'network1')
+    }
+
 
     dir.create(path_export, showWarnings = FALSE, recursive = TRUE)
     readr::write_tsv(node_table, file = file.path(path_export, 'node_table.tsv'))
@@ -877,6 +887,7 @@ retrieveSubNetwork1 <- function(centric_met,
   #' @param end_peak Character. Default: NULL
   #' @param step Numeric. Default: step = 1
   #' @param dir_path path of working directory. Default: '.'
+  #' @param folder_output path of subnetwork export. It will generate a subfolder in 03_subnetwork folder. If no folder defined, the subnetworks will exported into a folder with name of centric_met. Default: NULL
   #' @export
   #' @examples
   #' # subnetwork from centric peak
@@ -904,6 +915,7 @@ retrieveSubNetwork1 <- function(centric_met,
     end_peak = NULL,
     step = 1,
     dir_path = '.',
+    folder_output = NULL,
     show_plot = TRUE) {
     # browser()
     if (missing(from_peak)) {
@@ -915,7 +927,7 @@ retrieveSubNetwork1 <- function(centric_met,
     }
 
     if (!('network2_obj.RData' %in% list.files(file.path(dir_path, '01_files_network2')))) {
-      stop('No network2_result existed!')
+      stop('No network2_obj existed!')
     } else {
       load(file.path(dir_path, '01_files_network2', 'network2_obj.RData'))
     }
@@ -937,15 +949,22 @@ retrieveSubNetwork1 <- function(centric_met,
     }
 
     # export subgraph examples
-    ifelse(length(end_peak) > 0,
+    if (length(folder_output) == 0) {
+      ifelse(length(end_peak) > 0,
+        path_export <- file.path(dir_path,
+          '03_subnetworks',
+          paste(from_peak, end_peak, sep = '_'),
+          'network2'),
+        path_export <- file.path(dir_path,
+          '03_subnetworks',
+          from_peak,
+          'network2'))
+    } else {
       path_export <- file.path(dir_path,
         '03_subnetworks',
-        paste(from_peak, end_peak, sep = '_'),
-        'network2'),
-      path_export <- file.path(dir_path,
-        '03_subnetworks',
-        from_peak,
-        'network2'))
+        folder_output,
+        'network2')
+    }
 
     dir.create(path_export,
       showWarnings = FALSE, recursive = TRUE)
@@ -997,6 +1016,7 @@ retrieveSubNetwork1 <- function(centric_met,
 #' @param base_peaks a vector of base_peaks
 #' @param base_adducts a vector of base_adducts. Note: it should keep same length with base_peaks
 #' @param dir_path path of working directory.
+#' @param folder_output path of subnetwork export. It will generate a subfolder in 03_subnetwork folder. If no folder defined, the subnetworks will exported into a folder with name of centric_met. Default: NULL
 #' @param show_plot Whether show subnetwork plot. Default: TRUE
 #' @export
 #' @examples
@@ -1014,6 +1034,7 @@ retrieveSubNetwork1 <- function(centric_met,
   retrieveSubNetwork3 <- function(base_peaks,
     base_adducts,
     dir_path = '.',
+    folder_output = NULL,
     show_plot = TRUE) {
     # browser()
     if (missing(base_peaks)) {
@@ -1092,15 +1113,23 @@ retrieveSubNetwork1 <- function(centric_met,
 
 
     # export results
-    if (length(base_peaks) <= 2) {
-      path_export <- file.path(dir_path,
-        '03_subnetworks',
-        paste(base_peaks, collapse = '_'),
-        'network3')
+
+    if (length(folder_output) == 0) {
+      if (length(base_peaks) <= 2) {
+        path_export <- file.path(dir_path,
+          '03_subnetworks',
+          paste(base_peaks, collapse = '_'),
+          'network3')
+      } else {
+        path_export <- file.path(dir_path,
+          '03_subnetworks',
+          paste(base_peaks[1:2], collapse = '_'),
+          'network3')
+      }
     } else {
       path_export <- file.path(dir_path,
         '03_subnetworks',
-        paste(base_peaks[1:2], collapse = '_'),
+        folder_output,
         'network3')
     }
 
@@ -1157,6 +1186,7 @@ retrieveSubNetwork1 <- function(centric_met,
 #' @param from_peak
 #' @param end_peak
 #' @param dir_path path of working directory. Default: '.'
+#' @param folder_output path of subnetwork export. It will generate a subfolder in 03_subnetwork folder. If no folder defined, the subnetworks will exported into a folder with name of centric_met. Default: NULL
 #' @param show_plot whether show merged network. Default: TRUE
 #' @export
 #' @examples
@@ -1170,6 +1200,7 @@ retrieveSubNetwork1 <- function(centric_met,
 mergeSubnetwork <- function(from_peak,
   end_peak,
   dir_path = '.',
+  folder_output = NULL,
   show_plot = TRUE) {
 
   if (missing(from_peak)) {
@@ -1226,10 +1257,18 @@ mergeSubnetwork <- function(from_peak,
     dplyr::bind_rows(edge_table_subnetwork3)
 
   # export merged networks
-  path_export <- file.path(dir_path,
-    '03_subnetworks',
-    paste(from_peak, end_peak, sep = '_'),
-    'network_merge')
+  if (length(folder_output) == 0) {
+    path_export <- file.path(dir_path,
+      '03_subnetworks',
+      paste(from_peak, end_peak, sep = '_'),
+      'network_merge')
+  } else {
+    path_export <- file.path(dir_path,
+      '03_subnetworks',
+      paste(from_peak, end_peak, sep = '_'),
+      'network_merge')
+  }
+
 
   dir.create(path_export, showWarnings = FALSE, recursive = TRUE)
   readr::write_tsv(node_table,
