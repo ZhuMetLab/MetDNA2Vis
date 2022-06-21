@@ -23,3 +23,11 @@
 # usethis::use_data(cpd_lib, overwrite = TRUE)
 
 ################################################################################
+# 20220614 add 46STD evaluation ------------------------------------------------
+#
+# load('D:/01_r_package/MetDNA2_1.0.07/MetDNA2/data/cpd_46stdExd.rda')
+# usethis::use_data(cpd_46stdExd, overwrite = TRUE)
+#
+# load('D:/01_r_package/MetDNA2_1.0.07/MetDNA2/data/reaction_pair_network_46std.rda')
+# network_46std <- reaction_pair_network_46std$step2
+# usethis::use_data(network_46std, overwrite = TRUE)

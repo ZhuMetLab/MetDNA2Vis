@@ -124,27 +124,43 @@ reformatTable1 <- function(dir_path = '.'){
 #' @author Zhiwei Zhou
 #' @param dir_path path of working directory. Default: '.'
 #' @param is_unknown_annotation whether used unknown annotation. Default: TRUE
+#' @param mode 'emrn' and '46std'. Default: "emrn". The "46std" is only used in in-vitro metabolism experiment.
 #' @export
 
 reconstructNetwork1 <- function(dir_path = '.',
-  is_unknown_annotation = TRUE) {
+  is_unknown_annotation = TRUE,
+  mode = c('emrn', '46std')) {
+  mode <- match.arg(mode)
   cat('Extract network1 from KMRN... \n')
 
-  if (is_unknown_annotation) {
-    data("network_emrn_step2", envir = environment())
-    network_emrn <- network_emrn_step2
-    rm(network_emrn_step2);gc()
+  if (mode == 'emrn') {
+    if (is_unknown_annotation) {
+      data("network_emrn_step2", envir = environment())
+      network_emrn <- network_emrn_step2
+      rm(network_emrn_step2);gc()
+    } else {
+      data("network_emrn_step0", envir = environment())
+      network_emrn <- network_emrn_step0
+      rm(network_emrn_step0);gc()
+    }
   } else {
-    data("network_emrn_step0", envir = environment())
-    network_emrn <- network_emrn_step0
-    rm(network_emrn_step0);gc()
+    data("network_46std", envir = environment())
+    network_emrn <- network_46std
+    rm(network_46std);gc()
+  }
+
+  if (mode == 'emrn') {
+    data("cpd_emrn", envir = environment())
+  } else {
+    data("cpd_46stdExd", envir = environment())
+    cpd_emrn <- cpd_46stdExd
+    rm(cpd_46stdExd);gc()
   }
 
   network_emrn <- igraph::get.data.frame(network_emrn, what = 'both')
 
   # modify node table
   node_table <- network_emrn$vertices
-  data("cpd_emrn", envir = environment())
   temp_idx <- match(node_table$name, cpd_emrn$id)
   node_table <- node_table %>%
     dplyr::left_join(cpd_emrn, by = c('name' = 'id')) %>%
@@ -232,6 +248,7 @@ extractNetwork2FromNode <- function(id_kegg,
   peak,
   annotation_table,
   network_emrn,
+  cpd_emrn,
   ms2,
   reaction_step = 1, # exact n_step compound
   ms2_link = c('smilarity', 'hybrid')) {
@@ -323,7 +340,7 @@ extractNetwork2FromNode <- function(id_kegg,
 
   node_table <- annotation_table %>%
     dplyr::filter(peak_name %in% temp_peak) %>%
-    dplyr::mutate(formula = match(id_kegg, MetDNA2::cpd_emrn$id) %>% MetDNA2::cpd_emrn$formula[.]) %>%
+    dplyr::mutate(formula = match(id_kegg, cpd_emrn$id) %>% cpd_emrn$formula[.]) %>%
     dplyr::group_by(peak_name) %>%
     dplyr::summarise(peak_name = peak_name[1],
       mz = mz[1],
@@ -389,6 +406,7 @@ extractNetwork2FromNode <- function(id_kegg,
 #' @param whether_show_single_node Default: FALSE
 #' @param max_reaction_step Default: 3
 #' @param ms2_link 'hybrid' or 'smilarity'; 'hybrid' means linking nodes through MS/MS similarity (>= 0.5) or matched fragments (>=4); 'smilarity' means linking nodes through MS/MS similarity (>= 0.5) only; Default: hybrid
+#' @param mode 'emrn' and '46std'. Default: "emrn". The "46std" is only used in in-vitro metabolism experiment.
 #' @examples
 #' @export
 
@@ -404,21 +422,37 @@ reconstructNetwork2 <- function(
   is_unknown_annotation = TRUE,
   whether_show_single_node = FALSE,
   max_reaction_step = 3,
-  ms2_link = c('hybrid', 'smilarity')) {
+  ms2_link = c('hybrid', 'smilarity'),
+  mode = c('emrn', '46std')) {
 
   ms2_link <- match.arg(ms2_link)
+  mode <- match.arg(mode)
   seed_table <- annotation_table %>% dplyr::filter(with_ms2)
   load(file.path(dir_path, 'ms2_data.RData'))
   ms2 <- raw_msms; rm(raw_msms); gc()
 
-  if (is_unknown_annotation) {
-    data("network_emrn_step2", envir = environment())
-    network_emrn <- network_emrn_step2
-    rm(network_emrn_step2);gc()
+  if (mode == 'emrn') {
+    if (is_unknown_annotation) {
+      data("network_emrn_step2", envir = environment())
+      network_emrn <- network_emrn_step2
+      rm(network_emrn_step2);gc()
+    } else {
+      data("network_emrn_step0", envir = environment())
+      network_emrn <- network_emrn_step0
+      rm(network_emrn_step0);gc()
+    }
   } else {
-    data("network_emrn_step0", envir = environment())
-    network_emrn <- network_emrn_step0
-    rm(network_emrn_step0);gc()
+    data("network_46std", envir = environment())
+    network_emrn <- network_46std
+    rm(network_46std);gc()
+  }
+
+  if (mode == 'emrn') {
+    data("cpd_emrn", envir = environment())
+  } else {
+    data("cpd_46stdExd", envir = environment())
+    cpd_emrn <- cpd_46stdExd
+    rm(cpd_46stdExd);gc()
   }
 
   # browser()
@@ -455,6 +489,7 @@ reconstructNetwork2 <- function(
             peak = y,
             annotation_table = annotation_table,
             network_emrn = network_emrn,
+            cpd_emrn = cpd_emrn,
             ms2 = ms2,
             ms2_link = ms2_link,
             reaction_step = temp_step)
@@ -758,6 +793,7 @@ reconstructNetwork3 <- function(dir_path = '.') {
 #' @param dir_path path of working directory. Default: '.'
 #' @param folder_output path of subnetwork export. It will generate a subfolder in 03_subnetwork folder. If no folder defined, the subnetworks will exported into a folder with name of centric_met. Default: NULL
 #' @param show_plot whether show subnetwork plot in R. Default: TRUE
+#' @param mode 'emrn' and '46std'. Default: "emrn". The "46std" is only used in in-vitro metabolism experiment.
 #' @export
 #' @examples
 #' # single node input
@@ -770,18 +806,22 @@ reconstructNetwork3 <- function(dir_path = '.') {
 #   dir_path = 'D:/project/00_zhulab/01_metdna2/00_data/20220602_visualization_kgmn/06_visualization/')
 
 
-  # centric_met <- 'C00082'
+# centric_met <- 'C00082'
 retrieveSubNetwork1 <- function(centric_met,
-    step = 1,
-    is_unknown_annotation = TRUE,
-    dir_path = '.',
-    folder_output = NULL,
-    show_plot = TRUE) {
+                                step = 1,
+                                is_unknown_annotation = TRUE,
+                                dir_path = '.',
+                                folder_output = NULL,
+                                show_plot = TRUE,
+                                mode = c('emrn', '46std')) {
 
-    if (missing(centric_met)) {
-      stop('Please input centric_met\n')
-    }
+  mode <- match.arg(mode)
 
+  if (missing(centric_met)) {
+    stop('Please input centric_met\n')
+  }
+
+  if (mode == 'emrn') {
     if (is_unknown_annotation) {
       data("network_emrn_step2", envir = environment())
       network_emrn <- network_emrn_step2
@@ -791,93 +831,104 @@ retrieveSubNetwork1 <- function(centric_met,
       network_emrn <- network_emrn_step0
       rm(network_emrn_step0);gc()
     }
-
-    if (!all(centric_met %in% names(igraph::V(network_emrn)))) {
-      error <- which(centric_met %in% names(igraph::V(network_emrn))) %>%
-        centric_met[.]
-      stop('Nodes: ', paste(error, collapse = ';'), 'are not included in KMRN!\n')
-    }
-
-    if (length(centric_met) == 1) {
-      sub_graph <- igraph::make_ego_graph(network_emrn,
-        order = step,
-        nodes = centric_met)
-      sub_graph <- sub_graph[[1]]
-    } else {
-      sub_graph <- igraph::subgraph(network_emrn, v = c(centric_met))
-    }
-
-
-    # extract node table and edge table
-    sub_graph_result <- sub_graph %>% igraph::get.data.frame(what = 'both')
-
-    # modify node table
-    node_table <- sub_graph_result$vertices
-    data("cpd_emrn", envir = environment())
-    temp_idx <- match(node_table$name, cpd_emrn$id)
-    node_table <- node_table %>%
-      dplyr::left_join(cpd_emrn, by = c('name' = 'id')) %>%
-      dplyr::rename(cpd_name = name.y)
-    rm(cpd_emrn);gc()
-
-    # modify edge table
-    edge_table <- sub_graph_result$edges
-    idx_from <- match(edge_table$from, node_table$name)
-    idx_to <- match(edge_table$to, node_table$name)
-    diff_formula <- retrieveDiffFormula(from_formula = node_table$formula[idx_from],
-      to_formula = node_table$formula[idx_to],
-      from_mass = node_table$monoisotopic_mass[idx_from],
-      to_mass = node_table$monoisotopic_mass[idx_to])
-    diff_formula <- diff_formula %>% stringr::str_replace(pattern = '\\+0', '')
-    diff_formula[is.na(diff_formula)] <- 'isomer'
-    edge_table <- edge_table %>% dplyr::mutate(diff_formula = diff_formula)
-
-    if (length(folder_output) == 0) {
-      path_export <- file.path(dir_path,
-        '03_subnetworks',
-        paste(centric_met, collapse = '_'),
-        'network1')
-    } else {
-      path_export <- file.path(dir_path,
-        '03_subnetworks',
-        folder_output,
-        'network1')
-    }
-
-
-    dir.create(path_export, showWarnings = FALSE, recursive = TRUE)
-    readr::write_tsv(node_table, file = file.path(path_export, 'node_table.tsv'))
-    readr::write_tsv(edge_table, file = file.path(path_export, 'edge_table.tsv'))
-
-    sub_graph <- igraph::graph.data.frame(d = edge_table,
-      vertices = node_table,
-      directed = FALSE)
-    save(sub_graph, file = file.path(path_export, 'sub_graph.RData'))
-
-    subnetwork1_result <- list(node_table = node_table, edge_table = edge_table)
-    save(subnetwork1_result, file = file.path(path_export, 'subnetwork1_result.RData'))
-
-    # plot example
-    if (show_plot) {
-      subgraph_tbl <- tidygraph::tbl_graph(nodes = node_table,
-        edges = edge_table)
-
-      temp_plot <- ggraph::ggraph(subgraph_tbl, layout = 'nicely') +
-        ggraph::geom_edge_fan(ggplot2::aes(label = diff_formula), colour = 'black') +
-        ggraph::geom_node_point(ggplot2::aes(colour = type, shape = type), size = 5) +
-        ggplot2::scale_colour_manual(values = c('known_known' = 'dodgerblue',
-          'known_unknown' = 'tomato',
-          'unknown_unknown' = 'tomato')) +
-        ggplot2::scale_shape_manual(values = c('known_known' = 16,
-          'known_unknown' = 17,
-          'unknown_unknown' = 17)) +
-        ggraph::geom_node_text(ggplot2::aes(label = name)) +
-        ggplot2::theme_void() +
-        ggplot2::theme(legend.position = 'top')
-
-      return(temp_plot)
-    }
+  } else {
+    data("network_46std", envir = environment())
+    network_emrn <- network_46std
+    rm(network_46std);gc()
   }
+
+  if (mode == 'emrn') {
+    data("cpd_emrn", envir = environment())
+  } else {
+    data("cpd_46stdExd", envir = environment())
+    cpd_emrn <- cpd_46stdExd
+    rm(cpd_46stdExd);gc()
+  }
+
+  if (!all(centric_met %in% names(igraph::V(network_emrn)))) {
+    error <- which(centric_met %in% names(igraph::V(network_emrn))) %>%
+      centric_met[.]
+    stop('Nodes: ', paste(error, collapse = ';'), 'are not included in KMRN!\n')
+  }
+
+  if (length(centric_met) == 1) {
+    sub_graph <- igraph::make_ego_graph(network_emrn,
+                                        order = step,
+                                        nodes = centric_met)
+    sub_graph <- sub_graph[[1]]
+  } else {
+    sub_graph <- igraph::subgraph(network_emrn, v = c(centric_met))
+  }
+
+
+  # extract node table and edge table
+  sub_graph_result <- sub_graph %>% igraph::get.data.frame(what = 'both')
+  # modify node table
+  node_table <- sub_graph_result$vertices
+  temp_idx <- match(node_table$name, cpd_emrn$id)
+  node_table <- node_table %>%
+    dplyr::left_join(cpd_emrn, by = c('name' = 'id')) %>%
+    dplyr::rename(cpd_name = name.y)
+  rm(cpd_emrn);gc()
+
+  # modify edge table
+  edge_table <- sub_graph_result$edges
+  idx_from <- match(edge_table$from, node_table$name)
+  idx_to <- match(edge_table$to, node_table$name)
+  diff_formula <- retrieveDiffFormula(from_formula = node_table$formula[idx_from],
+                                      to_formula = node_table$formula[idx_to],
+                                      from_mass = node_table$monoisotopic_mass[idx_from],
+                                      to_mass = node_table$monoisotopic_mass[idx_to])
+  diff_formula <- diff_formula %>% stringr::str_replace(pattern = '\\+0', '')
+  diff_formula[is.na(diff_formula)] <- 'isomer'
+  edge_table <- edge_table %>% dplyr::mutate(diff_formula = diff_formula)
+
+  if (length(folder_output) == 0) {
+    path_export <- file.path(dir_path,
+                             '03_subnetworks',
+                             paste(centric_met, collapse = '_'),
+                             'network1')
+  } else {
+    path_export <- file.path(dir_path,
+                             '03_subnetworks',
+                             folder_output,
+                             'network1')
+  }
+
+
+  dir.create(path_export, showWarnings = FALSE, recursive = TRUE)
+  readr::write_tsv(node_table, file = file.path(path_export, 'node_table.tsv'))
+  readr::write_tsv(edge_table, file = file.path(path_export, 'edge_table.tsv'))
+
+  sub_graph <- igraph::graph.data.frame(d = edge_table,
+                                        vertices = node_table,
+                                        directed = FALSE)
+  save(sub_graph, file = file.path(path_export, 'sub_graph.RData'))
+
+  subnetwork1_result <- list(node_table = node_table, edge_table = edge_table)
+  save(subnetwork1_result, file = file.path(path_export, 'subnetwork1_result.RData'))
+
+  # plot example
+  if (show_plot) {
+    subgraph_tbl <- tidygraph::tbl_graph(nodes = node_table,
+                                         edges = edge_table)
+
+    temp_plot <- ggraph::ggraph(subgraph_tbl, layout = 'nicely') +
+      ggraph::geom_edge_fan(ggplot2::aes(label = diff_formula), colour = 'black') +
+      ggraph::geom_node_point(ggplot2::aes(colour = type, shape = type), size = 5) +
+      ggplot2::scale_colour_manual(values = c('known_known' = 'dodgerblue',
+                                              'known_unknown' = 'tomato',
+                                              'unknown_unknown' = 'tomato')) +
+      ggplot2::scale_shape_manual(values = c('known_known' = 16,
+                                             'known_unknown' = 17,
+                                             'unknown_unknown' = 17)) +
+      ggraph::geom_node_text(ggplot2::aes(label = name)) +
+      ggplot2::theme_void() +
+      ggplot2::theme(legend.position = 'top')
+
+    return(temp_plot)
+  }
+}
 
   # retrieveSubNetwork2 ----------------------------------------------------
 
@@ -1380,6 +1431,11 @@ Maintainer: Zhiwei Zhou
 Version 0.1.0 (20220604)
 -------------
 o Initial version for visualize multi-layer network results form KGMN
+
+Version 0.1.1 (20220614)
+-------------
+o add '46_std' mode to reproduce KGMN manuscript result
+o fix some bugs
 ")
 }
 

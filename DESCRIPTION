@@ -1,7 +1,7 @@
 Package: MetDNA2Vis
 Type: Package
 Title: MetDNA2 visualization for multi-layer networks
-Version: 0.1.0
+Version: 0.1.1
 Author: Zhiwei Zhou
 Maintainer: Zhiwei Zhou <zhouzw@sioc.ac.cn>
 Description: This package is used to visualize results from knowledge-guided multi-layer networks (KGMN).
@@ -21,4 +21,4 @@ Imports:
     tidygraph
 Depends: 
     R (>= 2.10)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2

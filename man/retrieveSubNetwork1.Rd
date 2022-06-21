@@ -10,7 +10,8 @@ retrieveSubNetwork1(
   is_unknown_annotation = TRUE,
   dir_path = ".",
   folder_output = NULL,
-  show_plot = TRUE
+  show_plot = TRUE,
+  mode = c("emrn", "46std")
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ retrieveSubNetwork1(
 \item{folder_output}{path of subnetwork export. It will generate a subfolder in 03_subnetwork folder. If no folder defined, the subnetworks will exported into a folder with name of centric_met. Default: NULL}
 
 \item{show_plot}{whether show subnetwork plot in R. Default: TRUE}
+
+\item{mode}{'emrn' and '46std'. Default: "emrn". The "46std" is only used in in-vitro metabolism experiment.}
 }
 \description{
 retrieve subnetwork1 from constructed metabolic reaction network

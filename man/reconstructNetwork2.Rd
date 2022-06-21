@@ -10,7 +10,8 @@ reconstructNetwork2(
   is_unknown_annotation = TRUE,
   whether_show_single_node = FALSE,
   max_reaction_step = 3,
-  ms2_link = c("hybrid", "smilarity")
+  ms2_link = c("hybrid", "smilarity"),
+  mode = c("emrn", "46std")
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ reconstructNetwork2(
 \item{max_reaction_step}{Default: 3}
 
 \item{ms2_link}{'hybrid' or 'smilarity'; 'hybrid' means linking nodes through MS/MS similarity (>= 0.5) or matched fragments (>=4); 'smilarity' means linking nodes through MS/MS similarity (>= 0.5) only; Default: hybrid}
+
+\item{mode}{'emrn' and '46std'. Default: "emrn". The "46std" is only used in in-vitro metabolism experiment.}
 }
 \description{
 reconstructNetwork2

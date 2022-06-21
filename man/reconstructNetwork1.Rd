@@ -4,12 +4,18 @@
 \alias{reconstructNetwork1}
 \title{reconstructNetwork1}
 \usage{
-reconstructNetwork1(dir_path = ".", is_unknown_annotation = TRUE)
+reconstructNetwork1(
+  dir_path = ".",
+  is_unknown_annotation = TRUE,
+  mode = c("emrn", "46std")
+)
 }
 \arguments{
 \item{dir_path}{path of working directory. Default: '.'}
 
 \item{is_unknown_annotation}{whether used unknown annotation. Default: TRUE}
+
+\item{mode}{'emrn' and '46std'. Default: "emrn". The "46std" is only used in in-vitro metabolism experiment.}
 }
 \description{
 reconstructNetwork1

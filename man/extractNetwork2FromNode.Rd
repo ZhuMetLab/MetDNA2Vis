@@ -9,6 +9,7 @@ extractNetwork2FromNode(
   peak,
   annotation_table,
   network_emrn,
+  cpd_emrn,
   ms2,
   reaction_step = 1,
   ms2_link = c("smilarity", "hybrid")
